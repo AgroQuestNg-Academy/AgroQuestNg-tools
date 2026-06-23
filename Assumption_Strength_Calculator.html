@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assumption Strength Calculator — AgroQuestNg</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green:    #1F5C3F;
+  --green2:   #2E7D52;
+  --green3:   #4CAF80;
+  --gold:     #8A6D1A;
+  --gold-lt:  #C9A227;
+  --bg:       #F5F0E8;
+  --white:    #FFFFFF;
+  --ink:      #1A1A1A;
+  --muted:    #5A5A5A;
+  --rule:     #D9D0C0;
+  --danger:   #C0392B;
+  --warning:  #E67E22;
+  --moderate: #8A6D1A;
+  --strong:   #2E7D52;
+  --validated:#1F5C3F;
+  --unknown-bg:  #FDEDED;
+  --weak-bg:     #FFF3E0;
+  --moderate-bg: #FFFDE7;
+  --strong-bg:   #E8F5E9;
+  --validated-bg:#E0F2E9;
+}
+
+body {
+  background: var(--bg);
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+.header {
+  background: var(--green);
+  padding: 32px 28px 26px;
+}
+.header-eyebrow {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: #A8CCB8;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.header h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(22px, 5vw, 34px);
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.header-sub {
+  font-size: 13px;
+  color: #A8CCB8;
+  font-style: italic;
+  max-width: 560px;
+}
+
+/* ── WRAP ───────────────────────────────────────────────── */
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+/* ── INTRO ──────────────────────────────────────────────── */
+.intro {
+  background: var(--white);
+  border-left: 4px solid var(--green);
+  border-radius: 0 8px 8px 0;
+  padding: 18px 22px;
+  margin: 28px 0 24px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.intro strong { color: var(--green); }
+
+/* ── PARTICIPANT ────────────────────────────────────────── */
+.participant {
+  background: var(--white);
+  border-radius: 10px;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.field-group label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+.field-group input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--rule);
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--ink);
+  background: transparent;
+  outline: none;
+  font-family: Arial, sans-serif;
+}
+.field-group input:focus { border-bottom-color: var(--green); }
+
+/* ── SECTION HEADER ─────────────────────────────────────── */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.section-head h2 {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  color: var(--green);
+}
+.section-head .badge {
+  background: var(--green);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+/* ── ASSUMPTION CARDS ───────────────────────────────────── */
+.assumptions-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+
+.assumption-card {
+  background: var(--white);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+  transition: box-shadow 0.2s;
+}
+.assumption-card:focus-within { box-shadow: 0 2px 12px rgba(31,92,63,0.15); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rule);
+  background: #FAFAF8;
+}
+.card-num {
+  background: var(--green);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.card-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  font-family: Arial, sans-serif;
+}
+.card-input::placeholder { color: #BBB; }
+
+.grade-badge {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+  background: #EEEEEE;
+  color: #999;
+  white-space: nowrap;
+}
+.grade-badge.unknown   { background: #FDEDED; color: var(--danger); }
+.grade-badge.weak      { background: #FFF3E0; color: var(--warning); }
+.grade-badge.moderate  { background: #FFFDE7; color: var(--moderate); }
+.grade-badge.strong    { background: #E8F5E9; color: var(--strong); }
+.grade-badge.validated { background: #E0F2E9; color: var(--validated); }
+
+/* ── QUESTION WIZARD ────────────────────────────────────── */
+.wizard {
+  padding: 16px 18px;
+  display: none;
+}
+.wizard.active { display: block; }
+
+.wizard-step { display: none; }
+.wizard-step.active { display: block; }
+
+.q-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.q-text {
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 14px;
+  line-height: 1.55;
+}
+.q-note {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.q-btns {
+  display: flex;
+  gap: 10px;
+}
+.q-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: 2px solid var(--rule);
+  border-radius: 7px;
+  background: #F9F9F9;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: Arial, sans-serif;
+}
+.q-btn:hover { border-color: var(--green); color: var(--green); background: #F0F5F1; }
+.q-btn.yes:hover { border-color: var(--green2); background: #E8F5E9; color: var(--green2); }
+.q-btn.no:hover  { border-color: var(--danger); background: #FDEDED; color: var(--danger); }
+
+/* ── GRADE RESULT ───────────────────────────────────────── */
+.grade-result {
+  display: none;
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-top: 4px;
+}
+.grade-result.show { display: block; }
+
+.result-grade {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-family: Georgia, serif;
+}
+.result-meaning { font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+.result-action {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.unknown-result   { background: var(--unknown-bg); border: 1px solid #FFCDD2; }
+.weak-result      { background: var(--weak-bg); border: 1px solid #FFE0B2; }
+.moderate-result  { background: var(--moderate-bg); border: 1px solid #FFF9C4; }
+.strong-result    { background: var(--strong-bg); border: 1px solid #C8E6C9; }
+.validated-result { background: var(--validated-bg); border: 1px solid #A5D6A7; }
+
+.unknown-result .result-grade   { color: var(--danger); }
+.weak-result .result-grade      { color: var(--warning); }
+.moderate-result .result-grade  { color: var(--moderate); }
+.strong-result .result-grade    { color: var(--strong); }
+.validated-result .result-grade { color: var(--validated); }
+
+.unknown-result .result-action   { background: var(--danger); color: #fff; }
+.weak-result .result-action      { background: var(--warning); color: #fff; }
+.moderate-result .result-action  { background: var(--moderate); color: #fff; }
+.strong-result .result-action    { background: var(--strong); color: #fff; }
+.validated-result .result-action { background: var(--validated); color: #fff; }
+
+/* ── CRITICALITY ────────────────────────────────────────── */
+.criticality-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  flex-wrap: wrap;
+}
+.criticality-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.crit-btn {
+  padding: 6px 14px;
+  border: 2px solid var(--rule);
+  border-radius: 20px;
+  background: #F9F9F9;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: Arial, sans-serif;
+}
+.crit-btn:hover { border-color: var(--gold); color: var(--gold); }
+.crit-btn.selected-critical { border-color: var(--danger); background: #FDEDED; color: var(--danger); }
+.crit-btn.selected-standard { border-color: var(--green); background: #E8F5E9; color: var(--green); }
+
+.retake-btn {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+}
+.retake-btn:hover { border-color: var(--green); color: var(--green); }
+
+/* ── ADD BUTTON ─────────────────────────────────────────── */
+.add-btn {
+  width: 100%;
+  padding: 14px;
+  border: 2px dashed var(--rule);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: Arial, sans-serif;
+  margin-bottom: 32px;
+}
+.add-btn:hover { border-color: var(--green); color: var(--green); background: #F0F5F1; }
+
+/* ── SCORE PANEL ────────────────────────────────────────── */
+.score-panel {
+  background: var(--green);
+  border-radius: 12px;
+  padding: 28px 24px;
+  margin-bottom: 28px;
+  color: #fff;
+}
+.score-panel-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.score-stat { text-align: center; }
+.score-stat-num {
+  font-family: Georgia, serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.score-stat-label { font-size: 11px; color: #A8CCB8; text-transform: uppercase; letter-spacing: 1px; }
+
+.score-bar-wrap {
+  background: rgba(255,255,255,0.15);
+  border-radius: 20px;
+  height: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.score-bar {
+  height: 8px;
+  border-radius: 20px;
+  background: #fff;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+.score-verdict {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.12);
+}
+
+/* ── IRON RULE ALERT ────────────────────────────────────── */
+.iron-rule-alert {
+  display: none;
+  background: #FDEDED;
+  border: 2px solid var(--danger);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.iron-rule-alert.show { display: block; }
+.iron-rule-alert h3 { font-size: 14px; color: var(--danger); font-weight: 700; margin-bottom: 8px; }
+.iron-rule-alert p { font-size: 13px; color: #5A1010; line-height: 1.6; }
+.iron-rule-alert ul { padding-left: 20px; margin-top: 8px; }
+.iron-rule-alert ul li { font-size: 13px; color: #5A1010; margin-bottom: 4px; }
+
+/* ── PRINT BUTTON ───────────────────────────────────────── */
+.print-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  background: var(--gold);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  transition: background 0.15s;
+  margin-bottom: 12px;
+}
+.print-btn:hover { background: var(--gold-lt); }
+
+.tagline { text-align: center; font-size: 12px; color: var(--muted); font-style: italic; }
+
+/* ── GRADE DISTRIBUTION ─────────────────────────────────── */
+.dist-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 16px;
+}
+.dist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dist-label { font-size: 11px; color: #A8CCB8; width: 70px; text-align: right; flex-shrink: 0; }
+.dist-bar-wrap { flex: 1; background: rgba(255,255,255,0.15); border-radius: 10px; height: 6px; overflow: hidden; }
+.dist-bar { height: 6px; border-radius: 10px; transition: width 0.4s ease; }
+.dist-count { font-size: 11px; color: #A8CCB8; width: 20px; text-align: left; flex-shrink: 0; }
+
+/* ── PRINT STYLES ───────────────────────────────────────── */
+@media print {
+  body { background: #fff; font-size: 13px; }
+  .header { background: #1F5C3F !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .add-btn, .print-btn, .retake-btn, .q-btns, .crit-btn { display: none !important; }
+  .wizard { display: block !important; }
+  .wizard-step { display: none !important; }
+  .grade-result { display: block !important; }
+  .assumption-card { break-inside: avoid; box-shadow: none; border: 1px solid #DDD; }
+  .score-panel { background: #1F5C3F !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; break-inside: avoid; }
+  .iron-rule-alert { break-inside: avoid; }
+}
+
+@media (max-width: 520px) {
+  .participant { grid-template-columns: 1fr; }
+  .score-panel-top { grid-template-columns: 1fr 1fr; }
+  .score-panel-top .score-stat:last-child { grid-column: span 2; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-eyebrow">AgroQuestNg Academy · Module 4 Tool</div>
+  <h1>Assumption Strength Calculator</h1>
+  <p class="header-sub">Auto-grades each assumption through evidence questions — not self-rating. Confidence is not evidence.</p>
+</div>
+
+<div class="wrap">
+
+  <div class="intro">
+    <strong>How this works:</strong> For each assumption behind your venture, the calculator walks you through a short set of evidence questions. Your answers — not your confidence — determine the grade. A single Unknown or Weak assumption on a Critical item triggers the Iron Rule: revert to Pilot before any capital moves.
+  </div>
+
+  <!-- Participant -->
+  <div class="participant">
+    <div class="field-group">
+      <label>Your Name</label>
+      <input type="text" id="pName" placeholder="Full name">
+    </div>
+    <div class="field-group">
+      <label>Venture / Investment Being Evaluated</label>
+      <input type="text" id="pVenture" placeholder="What are you evaluating?">
+    </div>
+    <div class="field-group">
+      <label>Date</label>
+      <input type="text" id="pDate">
+    </div>
+    <div class="field-group">
+      <label>Session / Cohort</label>
+      <input type="text" id="pCohort" placeholder="e.g. Investment Intelligence Founding Cohort">
+    </div>
+  </div>
+
+  <!-- Assumptions list -->
+  <div class="section-head">
+    <h2>Your Assumptions</h2>
+    <span class="badge" id="countBadge">0 graded</span>
+  </div>
+
+  <div class="assumptions-list" id="assumptionsList"></div>
+
+  <button class="add-btn" onclick="addAssumption()">+ Add another assumption</button>
+
+  <!-- Score panel -->
+  <div class="score-panel">
+    <div class="score-panel-top">
+      <div class="score-stat">
+        <div class="score-stat-num" id="totalCount">0</div>
+        <div class="score-stat-label">Total Assumptions</div>
+      </div>
+      <div class="score-stat">
+        <div class="score-stat-num" id="gradedCount">0</div>
+        <div class="score-stat-label">Graded</div>
+      </div>
+      <div class="score-stat">
+        <div class="score-stat-num" id="avgScore">—</div>
+        <div class="score-stat-label">Avg Strength</div>
+      </div>
+    </div>
+    <div class="score-bar-wrap">
+      <div class="score-bar" id="scoreBar"></div>
+    </div>
+    <div class="dist-row" id="distRow"></div>
+    <div class="score-verdict" id="scoreVerdict" style="margin-top:14px;">
+      Add and grade your assumptions above to see your overall readiness.
+    </div>
+  </div>
+
+  <!-- Iron Rule Alert -->
+  <div class="iron-rule-alert" id="ironRuleAlert">
+    <h3>⚠ THE IRON RULE IS TRIGGERED</h3>
+    <p>One or more Critical assumptions are graded Unknown or Weak. Per the AgroQuestNg Iron Rule: <strong>do not scale this venture until these assumptions are validated through a pilot or direct observation.</strong></p>
+    <ul id="ironRuleList"></ul>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">Print / Save Assumption Audit Report</button>
+  <div class="tagline">Empowerment · Wealth · Dignity — AgroQuestNg Academy</div>
+
+</div>
+
+<script>
+// ── Data ───────────────────────────────────────────────────────────
+const GRADES = {
+  validated: { label: "Validated", score: 5, color: "var(--validated)" },
+  strong:    { label: "Strong",    score: 4, color: "var(--strong)" },
+  moderate:  { label: "Moderate",  score: 3, color: "var(--moderate)" },
+  weak:      { label: "Weak",      score: 2, color: "var(--warning)" },
+  unknown:   { label: "Unknown",   score: 1, color: "var(--danger)" },
+};
+
+const GRADE_MEANINGS = {
+  validated: "You ran a pilot or documented field trial yourself on this specific site, crop, or market. Results are recorded.",
+  strong:    "You have direct personal observation in a comparable local context within the last 2 seasons.",
+  moderate:  "Your evidence comes from general industry data, expert opinion, or a similar but not identical context.",
+  weak:      "Your evidence is secondhand, unverified, heard from others, or more than 2 seasons old.",
+  unknown:   "You cannot identify any source of evidence for this assumption. It is a belief without a foundation.",
+};
+
+const GRADE_ACTIONS = {
+  validated: "Ready — this assumption is solid. Monitor for changes.",
+  strong:    "Proceed with confidence. Document the evidence source.",
+  moderate:  "Proceed with caution. Seek local validation before scaling.",
+  weak:      "Do not proceed at scale. Run a pilot to test this assumption first.",
+  unknown:   "STOP. This assumption must be investigated before any capital moves.",
+};
+
+// Question wizard logic — each question narrows grade downward
+// Q1: Can you identify ANY evidence source?
+//   No → Unknown
+//   Yes → Q2
+// Q2: Is the evidence from a pilot you ran yourself on this site/crop/market with documented results?
+//   Yes → Validated
+//   No → Q3
+// Q3: Is the evidence from your own direct observation in a comparable local context within the last 2 seasons?
+//   Yes → Strong
+//   No → Q4
+// Q4: Is the evidence from general industry data, expert opinion, or a similar (not identical) context?
+//   Yes → Moderate
+//   No → Weak
+
+const QUESTIONS = [
+  {
+    id: "q1",
+    label: "Evidence Existence",
+    text: "Can you point to any specific source of evidence for this assumption — not just a feeling, but something you observed, read, heard from a verified source, or tested?",
+    note: "Be honest. A guess does not count as evidence.",
+    yes: "q2", no: "weak_no_evidence"
+  },
+  {
+    id: "q2",
+    label: "Pilot Evidence",
+    text: "Is your evidence from a pilot or field trial you ran yourself — on this specific site, crop, or market — with results you documented?",
+    note: "A pilot means you personally tested this assumption under controlled conditions and recorded what happened.",
+    yes: "validated", no: "q3"
+  },
+  {
+    id: "q3",
+    label: "Direct Local Observation",
+    text: "Is your evidence from your own direct personal observation in a comparable local context — within the last 2 seasons?",
+    note: "Comparable means similar soil, climate, crop, and market conditions to your specific venture — not a different region or time period.",
+    yes: "strong", no: "q4"
+  },
+  {
+    id: "q4",
+    label: "Indirect Evidence",
+    text: "Does your evidence come from general industry data, expert opinion, government statistics, or observation in a context that is similar — but not identical — to your venture?",
+    note: "If your source is a neighbour who 'heard it from someone' or a Facebook post, the answer is No.",
+    yes: "moderate", no: "weak"
+  },
+];
+
+const QUESTION_MAP = {};
+QUESTIONS.forEach(q => { QUESTION_MAP[q.id] = q; });
+
+// ── State ──────────────────────────────────────────────────────────
+let assumptions = [];
+let nextId = 1;
+
+// ── Build assumption card ──────────────────────────────────────────
+function addAssumption(prefill = "") {
+  const id = nextId++;
+  assumptions.push({ id, text: prefill, grade: null, criticality: null, step: "q1" });
+
+  const list = document.getElementById("assumptionsList");
+  const card = document.createElement("div");
+  card.className = "assumption-card";
+  card.id = `card-${id}`;
+  card.innerHTML = buildCardHTML(id, prefill);
+  list.appendChild(card);
+  updateScore();
+
+  // Focus the input
+  setTimeout(() => {
+    const inp = document.getElementById(`assumption-text-${id}`);
+    if (inp) inp.focus();
+  }, 50);
+}
+
+function buildCardHTML(id, text = "") {
+  const q = QUESTION_MAP["q1"];
+  return `
+    <div class="card-header">
+      <div class="card-num">${id}</div>
+      <input class="card-input" id="assumption-text-${id}" placeholder="State your assumption clearly e.g. 'Market price will remain above ₦8,000 per basket'" value="${text}" oninput="updateText(${id}, this.value)">
+      <div class="grade-badge" id="badge-${id}">Not graded</div>
+    </div>
+    <div class="wizard active" id="wizard-${id}">
+      ${buildWizardSteps(id)}
+      ${buildGradeResult(id)}
+    </div>
+  `;
+}
+
+function buildWizardSteps(id) {
+  return QUESTIONS.map(q => `
+    <div class="wizard-step" id="step-${id}-${q.id}">
+      <div class="q-label">${q.label}</div>
+      <div class="q-text">${q.text}</div>
+      <div class="q-note">${q.note}</div>
+      <div class="q-btns">
+        <button class="q-btn yes" onclick="answer(${id}, '${q.id}', '${q.yes}')">Yes</button>
+        <button class="q-btn no"  onclick="answer(${id}, '${q.id}', '${q.no}')">No</button>
+      </div>
+    </div>
+  `).join("") + `
+    <div class="wizard-step" id="step-${id}-weak_no_evidence">
+      <!-- Immediate unknown if no evidence at all -->
+    </div>
+  `;
+}
+
+function buildGradeResult(id) {
+  return `
+    <div class="grade-result" id="result-${id}">
+      <div class="result-grade" id="result-grade-${id}"></div>
+      <div class="result-meaning" id="result-meaning-${id}"></div>
+      <div class="result-action" id="result-action-${id}"></div>
+      <div class="criticality-row">
+        <span class="criticality-label">Impact if wrong:</span>
+        <button class="crit-btn" id="crit-critical-${id}" onclick="setCriticality(${id}, 'critical', this)">Critical — venture collapses</button>
+        <button class="crit-btn" id="crit-standard-${id}" onclick="setCriticality(${id}, 'standard', this)">Standard — manageable setback</button>
+      </div>
+      <button class="retake-btn" onclick="retake(${id})">Re-grade this assumption</button>
+    </div>
+  `;
+}
+
+function showStep(id, stepId) {
+  // Hide all steps for this card
+  QUESTIONS.forEach(q => {
+    const el = document.getElementById(`step-${id}-${q.id}`);
+    if (el) el.classList.remove("active");
+  });
+  const extra = document.getElementById(`step-${id}-weak_no_evidence`);
+  if (extra) extra.classList.remove("active");
+
+  const target = document.getElementById(`step-${id}-${stepId}`);
+  if (target) target.classList.add("active");
+}
+
+function answer(id, fromStep, nextStep) {
+  const idx = assumptions.findIndex(a => a.id === id);
+  if (idx === -1) return;
+
+  // Check assumption has text
+  const textEl = document.getElementById(`assumption-text-${id}`);
+  if (!textEl || !textEl.value.trim()) {
+    textEl.style.borderBottomColor = "var(--danger)";
+    textEl.placeholder = "Please state your assumption first";
+    textEl.focus();
+    return;
+  }
+  textEl.style.borderBottomColor = "";
+
+  // If next is a grade
+  if (GRADES[nextStep]) {
+    setGrade(id, nextStep);
+    return;
+  }
+  // If no evidence → unknown
+  if (nextStep === "weak_no_evidence") {
+    setGrade(id, "unknown");
+    return;
+  }
+  // Next question
+  assumptions[idx].step = nextStep;
+  showStep(id, nextStep);
+}
+
+function setGrade(id, gradeKey) {
+  const idx = assumptions.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  assumptions[idx].grade = gradeKey;
+
+  const grade = GRADES[gradeKey];
+
+  // Update badge
+  const badge = document.getElementById(`badge-${id}`);
+  badge.textContent = grade.label;
+  badge.className = `grade-badge ${gradeKey}`;
+
+  // Hide all steps
+  QUESTIONS.forEach(q => {
+    const el = document.getElementById(`step-${id}-${q.id}`);
+    if (el) el.classList.remove("active");
+  });
+
+  // Show result
+  const result = document.getElementById(`result-${id}`);
+  result.className = `grade-result show ${gradeKey}-result`;
+
+  document.getElementById(`result-grade-${id}`).textContent = `Grade: ${grade.label}`;
+  document.getElementById(`result-meaning-${id}`).textContent = GRADE_MEANINGS[gradeKey];
+  document.getElementById(`result-action-${id}`).textContent = GRADE_ACTIONS[gradeKey];
+
+  updateScore();
+}
+
+function retake(id) {
+  const idx = assumptions.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  assumptions[idx].grade = null;
+  assumptions[idx].criticality = null;
+  assumptions[idx].step = "q1";
+
+  const badge = document.getElementById(`badge-${id}`);
+  badge.textContent = "Not graded";
+  badge.className = "grade-badge";
+
+  const result = document.getElementById(`result-${id}`);
+  result.className = "grade-result";
+
+  // Reset criticality buttons
+  document.getElementById(`crit-critical-${id}`).className = "crit-btn";
+  document.getElementById(`crit-standard-${id}`).className = "crit-btn";
+
+  showStep(id, "q1");
+  updateScore();
+}
+
+function setCriticality(id, level, btn) {
+  const idx = assumptions.findIndex(a => a.id === id);
+  if (idx === -1) return;
+  assumptions[idx].criticality = level;
+
+  const critBtn = document.getElementById(`crit-critical-${id}`);
+  const stdBtn  = document.getElementById(`crit-standard-${id}`);
+  critBtn.className = "crit-btn" + (level === "critical" ? " selected-critical" : "");
+  stdBtn.className  = "crit-btn" + (level === "standard"  ? " selected-standard"  : "");
+
+  updateScore();
+}
+
+function updateText(id, val) {
+  const idx = assumptions.findIndex(a => a.id === id);
+  if (idx !== -1) assumptions[idx].text = val;
+}
+
+// ── Activate first step on card init ──────────────────────────────
+function initCard(id) {
+  showStep(id, "q1");
+}
+
+// ── Score calculation ──────────────────────────────────────────────
+function updateScore() {
+  const graded = assumptions.filter(a => a.grade !== null);
+  const total  = assumptions.length;
+  const gradedCount = graded.length;
+
+  document.getElementById("totalCount").textContent  = total;
+  document.getElementById("gradedCount").textContent = gradedCount;
+  document.getElementById("countBadge").textContent  = `${gradedCount} graded`;
+
+  if (gradedCount === 0) {
+    document.getElementById("avgScore").textContent = "—";
+    document.getElementById("scoreBar").style.width = "0%";
+    document.getElementById("scoreVerdict").textContent = "Add and grade your assumptions above to see your overall readiness.";
+    buildDist(graded);
+    checkIronRule(graded);
+    return;
+  }
+
+  const scores = graded.map(a => GRADES[a.grade].score);
+  const avg = scores.reduce((s, v) => s + v, 0) / scores.length;
+  const pct = ((avg - 1) / 4) * 100;
+
+  document.getElementById("avgScore").textContent = avg.toFixed(1);
+  document.getElementById("scoreBar").style.width = pct.toFixed(0) + "%";
+
+  let verdict = "";
+  if (avg >= 4.5) verdict = "✓ Excellent — your assumptions are well-evidenced. Proceed with confidence.";
+  else if (avg >= 3.5) verdict = "✓ Strong — good evidence base. Address any remaining Moderate assumptions before scaling.";
+  else if (avg >= 2.5) verdict = "⚡ Moderate — several assumptions need stronger local evidence before you scale.";
+  else if (avg >= 1.5) verdict = "⚠ Weak — most assumptions lack solid evidence. Run pilots before committing capital.";
+  else verdict = "✕ Unknown — this venture is built on unverified beliefs. Stop and investigate before proceeding.";
+
+  document.getElementById("scoreVerdict").textContent = verdict;
+  buildDist(graded);
+  checkIronRule(graded);
+}
+
+function buildDist(graded) {
+  const counts = { validated: 0, strong: 0, moderate: 0, weak: 0, unknown: 0 };
+  graded.forEach(a => { if (counts[a.grade] !== undefined) counts[a.grade]++; });
+  const total = graded.length || 1;
+
+  const colors = {
+    validated: "#A5D6A7", strong: "#81C784", moderate: "#FFD54F",
+    weak: "#FFB74D", unknown: "#EF9A9A"
+  };
+
+  const distRow = document.getElementById("distRow");
+  distRow.innerHTML = Object.entries(counts).map(([key, count]) => `
+    <div class="dist-item">
+      <div class="dist-label">${GRADES[key].label}</div>
+      <div class="dist-bar-wrap">
+        <div class="dist-bar" style="width:${(count/total*100).toFixed(0)}%; background:${colors[key]}"></div>
+      </div>
+      <div class="dist-count">${count}</div>
+    </div>
+  `).join("");
+}
+
+function checkIronRule(graded) {
+  const alert = document.getElementById("ironRuleAlert");
+  const list  = document.getElementById("ironRuleList");
+
+  const triggered = graded.filter(a =>
+    a.criticality === "critical" && (a.grade === "unknown" || a.grade === "weak")
+  );
+
+  if (triggered.length === 0) {
+    alert.classList.remove("show");
+    return;
+  }
+
+  alert.classList.add("show");
+  list.innerHTML = triggered.map(a => {
+    const text = a.text || `Assumption #${a.id}`;
+    return `<li><strong>${text}</strong> — Graded <strong>${GRADES[a.grade].label}</strong> and marked Critical. Must be validated before proceeding.</li>`;
+  }).join("");
+}
+
+// ── Initialise with common starter assumptions ─────────────────────
+const STARTERS = [
+  "Market price will remain stable or increase over the crop cycle",
+  "Rainfall will be adequate for this season",
+  "Labour will be available at harvest time",
+  "My buyer will honour the purchase agreement",
+  "Input costs will not increase significantly before harvest",
+];
+
+window.addEventListener("DOMContentLoaded", () => {
+  // Set date
+  document.getElementById("pDate").value = new Date().toLocaleDateString("en-GB", {
+    day: "numeric", month: "long", year: "numeric"
+  });
+
+  // Add starter assumptions
+  STARTERS.forEach(s => addAssumption(s));
+
+  // Init all wizard steps
+  assumptions.forEach(a => initCard(a.id));
+});
+
+// Override addAssumption to also init wizard
+const _origAdd = addAssumption;
+function addAssumption(prefill = "") {
+  const id = nextId++;
+  assumptions.push({ id, text: prefill, grade: null, criticality: null, step: "q1" });
+
+  const list = document.getElementById("assumptionsList");
+  const card = document.createElement("div");
+  card.className = "assumption-card";
+  card.id = `card-${id}`;
+  card.innerHTML = buildCardHTML(id, prefill);
+  list.appendChild(card);
+
+  // Show first step
+  setTimeout(() => initCard(id), 10);
+  updateScore();
+
+  if (!prefill) {
+    setTimeout(() => {
+      const inp = document.getElementById(`assumption-text-${id}`);
+      if (inp) inp.focus();
+    }, 50);
+  }
+}
+</script>
+</body>
+</html>
